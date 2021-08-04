@@ -1,0 +1,22 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t pablorzmz/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true pablorzmz/react-test npm test 
+
+
+after_success:
+  - docker build -t pablorzmz/multi-client ./client
+  - docker build -t pablorzmz/multi-server ./server
+  - docker build -t pablorzmz/multi-worker ./worker
+  - docker build -t pablorzmz/multi-nginx ./nginx
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push pablorzmz/multi-client
+  - docker push pablorzmz/multi-server
+  - docker push pablorzmz/multi-worker
+  - docker push pablorzmz/multi-nginx
